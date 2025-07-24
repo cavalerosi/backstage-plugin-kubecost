@@ -1,5 +1,5 @@
 {
-  "name": "@suxess-it/backstage-plugin-kubecost",
+  "name": "@cavalerosi/backstage-plugin-kubecost",
   "version": "0.4.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -14,11 +14,11 @@
     "role": "frontend-plugin"
   },
   "bugs": {
-    "url": "https://github.com/suxess-it/backstage-plugin-kubecost/issues"
+    "url": "https://github.com/cavalerosi/backstage-plugin-kubecost/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/suxess-it/backstage-plugin-kubecost.git"
+    "url": "git+https://github.com/cavalerosi/backstage-plugin-kubecost.git"
   },
   "scripts": {
     "start": "backstage-cli package start",
