@@ -15,8 +15,7 @@
  */
 
 import { Entity } from '@backstage/catalog-model';
-import {useGetAnnotationDeploymentName} from "../../customConfig";
 
 export const deploymentName = (entity: Entity) => {
-  return entity?.metadata.annotations?.[useGetAnnotationDeploymentName()] ?? '';
+  return entity?.metadata.name ?? '';
 };

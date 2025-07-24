@@ -88,14 +88,14 @@ export const KubecostFetchComponent = () => {
     `accumulate=${selectedAccu}&` +
     `idle=false&` +
     `shareIdle=false&` +
-    `${aggregate ? 'aggregate=controller&' : ''}` +
+    `${aggregate ? 'aggregate=container&' : ''}` +
     `shareNamespaces=${sharedNamespaces}&` +
     `shareTenancyCosts=${shareTenancyCosts}&` +
-    `filter=label%5B${useGetAnnotationDeploymentName()}%5D:"${deployName}"+controllerKind:deployment`;
+    `filter=label%5Balias%5D:"${deployName}"+controllerKind:deployment`;
 
   const { value = [], loading, error } = useAsync(async (): Promise<Metrics[]> => {
     const response = await fetch(api, {
-      Headers: {
+      headers: {
         "X-API-KEY": apiKey,
       },
     }).then(res => res.json());
