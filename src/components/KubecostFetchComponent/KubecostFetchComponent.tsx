@@ -12,7 +12,7 @@ import { deploymentName } from '../useAppData';
 import useAsync from 'react-use/lib/useAsync';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { Select } from '../Select';
-import {useGetAnnotationDeploymentName} from "../../../customConfig";
+import { useGetAnnotationDeploymentName } from "../../../customConfig";
 
 
 type Metrics = {
@@ -45,8 +45,9 @@ export const KubecostFetchComponent = () => {
   const fractionDigits = configApi.getOptionalNumber('kubecost.fractionDigits') ?? 4;
   const shareTenancyCosts = configApi.getOptionalBoolean('kubecost.shareTenancyCosts') ?? false;
   const aggregate = configApi.getOptionalBoolean('kubecost.aggregate') ?? false;
+  const apiKey = configApi.getOptionalString('kubecost.apiKey') ?? '';
   const rawwindows = timeframes?.split(',')?.map(p => p.trim()) ?? [];
-  const accu = "true,false" 
+  const accu = "true,false"
   const rawaccu = accu?.split(',')?.map(p => p.trim()) ?? [];
 
   const [selectedWindow, setselectedWindow] = useState<string>(
@@ -71,7 +72,7 @@ export const KubecostFetchComponent = () => {
       gpuCost: `${unitprefix} ${round(data?.gpuCost ?? 0)}`,
       sharedCost: `${unitprefix} ${round(data?.sharedCost ?? 0)}`,
       minutes: (data?.minutes ?? 0),
-      totalEfficiency: `${round((data?.totalEfficiency ?? 0)*100).toFixed(fractionDigits)} %`,
+      totalEfficiency: `${round((data?.totalEfficiency ?? 0) * 100).toFixed(fractionDigits)} %`,
     };
   };
 
@@ -83,50 +84,54 @@ export const KubecostFetchComponent = () => {
   };
 
   const api = `${baseUrl}/model/allocation?` +
-      `window=${selectedWindow}&` +
-      `accumulate=${selectedAccu}&` +
-      `idle=false&` +
-      `shareIdle=false&` +
-      `${aggregate? 'aggregate=controller&': ''  }` +
-      `shareNamespaces=${sharedNamespaces}&` +
-      `shareTenancyCosts=${shareTenancyCosts}&` +
-      `filter=label%5B${useGetAnnotationDeploymentName()}%5D:"${deployName}"+controllerKind:deployment`;
+    `window=${selectedWindow}&` +
+    `accumulate=${selectedAccu}&` +
+    `idle=false&` +
+    `shareIdle=false&` +
+    `${aggregate ? 'aggregate=controller&' : ''}` +
+    `shareNamespaces=${sharedNamespaces}&` +
+    `shareTenancyCosts=${shareTenancyCosts}&` +
+    `filter=label%5B${useGetAnnotationDeploymentName()}%5D:"${deployName}"+controllerKind:deployment`;
 
   const { value = [], loading, error } = useAsync(async (): Promise<Metrics[]> => {
-    const response = await fetch(api).then(res => res.json());
+    const response = await fetch(api, {
+      Headers: {
+        "X-API-KEY": apiKey,
+      },
+    }).then(res => res.json());
     const flatResponse = {
       data: response.data
-          .filter((obj: null | Array<{ [key: string]: any }>) => obj !== null && obj !== undefined)
-          .flatMap((obj: Array<{ [key: string]: any }>) => Object.entries(obj).map(([key, value]) => ({[key]: value})))
+        .filter((obj: null | Array<{ [key: string]: any }>) => obj !== null && obj !== undefined)
+        .flatMap((obj: Array<{ [key: string]: any }>) => Object.entries(obj).map(([key, value]) => ({ [key]: value })))
     };
 
-  const metricsPromises: Promise<Metrics>[] = Object.entries(flatResponse?.data).map(async ([id, ref]) => {
-    const nn = Object.keys(ref ?? {})[0];
-    const typedRef = ref as { [key: string]: { id: string, name: string } };
-    const val = typedRef?.[nn];
-    return getMetrics(val);
-  });
-  const metrics = await Promise.all(metricsPromises);
-  return metrics;
-}, [api]);
+    const metricsPromises: Promise<Metrics>[] = Object.entries(flatResponse?.data).map(async ([id, ref]) => {
+      const nn = Object.keys(ref ?? {})[0];
+      const typedRef = ref as { [key: string]: { id: string, name: string } };
+      const val = typedRef?.[nn];
+      return getMetrics(val);
+    });
+    const metrics = await Promise.all(metricsPromises);
+    return metrics;
+  }, [api]);
 
   return (
     <Page themeId="tool">
       <Content noPadding>
 
-          <Select
-            value={selectedWindow}
-            onChange={window => onSelectedWindowChange(window)}
-            label="Data Selection Window "
-            items={rawwindows.map(p => ({ label: p, value: p }))}
-          />
-          <Select
-            value={selectedAccu}
-            onChange={accu => onSelectedAccuChange(accu)}
-            label="Accumulate Data"
-            items={rawaccu.map(p => ({ label: p, value: p }))}
-          />
-          {loading ? <Progress /> : error ? <ResponseErrorPanel error={error} /> : <DenseTable metrics={value} />}
+        <Select
+          value={selectedWindow}
+          onChange={window => onSelectedWindowChange(window)}
+          label="Data Selection Window "
+          items={rawwindows.map(p => ({ label: p, value: p }))}
+        />
+        <Select
+          value={selectedAccu}
+          onChange={accu => onSelectedAccuChange(accu)}
+          label="Accumulate Data"
+          items={rawaccu.map(p => ({ label: p, value: p }))}
+        />
+        {loading ? <Progress /> : error ? <ResponseErrorPanel error={error} /> : <DenseTable metrics={value} />}
 
       </Content>
     </Page>

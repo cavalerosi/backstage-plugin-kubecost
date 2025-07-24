@@ -62,5 +62,10 @@ export interface Config {
      * @visibility frontend
      */
     showDashboardLink: boolean;
+    /**
+    * Api Key to access the Kubecost API.  (Optional)
+    * @visibility frontend
+    */
+    apiKey: string;
   };
 }
